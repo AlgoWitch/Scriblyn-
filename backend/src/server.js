@@ -13,7 +13,16 @@ const app = express();
 connectDB();
 
 // Middleware
-app.use(cors());
+// CORS configuration - allows requests from any origin
+// For production, update FRONTEND_URL in .env to restrict to specific domain
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : '*', // Allow all origins in development
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
