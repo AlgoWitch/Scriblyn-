@@ -1,7 +1,5 @@
 // src/components/SmallerComponents/AuthContext.js
 import { createContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../firebase';
 
 export const AuthContext = createContext();
 
@@ -10,25 +8,30 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsLoggedIn(!!user);
-      setCurrentUser(user);
-    });
+    // Check login status on page load
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
 
-    return () => unsubscribe();
+    if (token && userData) {
+      setIsLoggedIn(true);
+      setCurrentUser(JSON.parse(userData));
+    } else {
+      setIsLoggedIn(false);
+      setCurrentUser(null);
+    }
   }, []);
 
+  // Logout logic
   const logout = () => {
-    signOut(auth)
-      .then(() => {
-        setIsLoggedIn(false);
-        setCurrentUser(null);
-      })
-      .catch((error) => console.error("Logout error:", error));
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setIsLoggedIn(false);
+    setCurrentUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, currentUser, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, currentUser, setCurrentUser, setIsLoggedIn, logout }}>
       {children}
     </AuthContext.Provider>
   );
